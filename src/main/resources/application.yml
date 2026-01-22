@@ -1,0 +1,22 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/jobtracker
+    username: jobtracker
+    password: jobtracker
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+  flyway:
+    enabled: true
+
+app:
+  jwt:
+    secret: "suyesh-super-secret-key-change-this-1234567890"
+    issuer: "jobtracker"
+    expirationMinutes: 120
+
