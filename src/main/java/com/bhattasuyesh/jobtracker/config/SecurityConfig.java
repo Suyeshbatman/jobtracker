@@ -25,28 +25,41 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
-                // We are a REST API: no cookies, no sessions, no CSRF
+        http
+
+                // REST API style: no sessions, no login forms
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // If not authenticated, return 401 (not 403, not login page)
-                .exceptionHandling(eh -> eh
-                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
-                )
-
+                // Authorization rules
                 .authorizeHttpRequests(auth -> auth
-                        // Public
-                        .requestMatchers("/health", "/health/**", "/auth/register", "/auth/login").permitAll()
-
-                        // Allow preflight if browser ever hits this API (safe to include)
+                        // Preflight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Everything else requires JWT
-                        .anyRequest().authenticated()
+                        // Public API endpoints
+                        .requestMatchers("/health", "/health/**", "/auth/**").permitAll()
+
+                        // React build/static files
+                        .requestMatchers(
+                                "/", "/index.html",
+                                "/assets/**",
+                                "/*.ico", "/*.png", "/*.svg", "/*.css", "/*.js"
+                        ).permitAll()
+
+                        // React Router routes (hard refresh / direct open)
+                        .requestMatchers("/login", "/register", "/dashboard", "/dashboard/**").permitAll()
+
+                        // ✅ Secure only backend data endpoints
+                        .requestMatchers("/me", "/applications/**").authenticated()
+
+                        // ✅ Everything else is allowed (so SPA forwarding doesn’t get blocked)
+                        .anyRequest().permitAll()
                 )
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
+
+                // Add JWT filter before Spring’s default auth filter
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
     }
 
     @Bean

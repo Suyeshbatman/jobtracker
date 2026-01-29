@@ -13,10 +13,15 @@ spring:
 
   flyway:
     enabled: true
+  web:
+    error:
+      whitelabel:
+        enabled: false
 
 app:
   jwt:
     secret: "suyesh-super-secret-key-change-this-1234567890"
     issuer: "jobtracker"
     expirationMinutes: 120
+
 
